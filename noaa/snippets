@@ -1,0 +1,662 @@
+// hash stuff for Stations
+uint jenkins_one_at_a_time_hash(const uchar *key, size_t length) {
+  size_t i = 0;
+  uint hash = 0;
+  while (i != length) {
+    hash += key[i++];
+    hash += hash << 10;
+    hash ^= hash >> 6;
+  }
+  hash += hash << 3;
+  hash ^= hash >> 11;
+  hash += hash << 15;
+  return hash;
+}
+
+uint hash24(const uchar *key, int length) {
+  uint hash = 0;
+
+  for (auto i = 0; i != length;) {
+    hash += key[i++];
+    hash += hash << 8;
+    hash ^= hash >> 4;
+  }
+  hash += hash << 2;
+  hash ^= hash >> 9;
+  hash += hash << 10;
+
+  return hash >> 8;
+}
+
+void hashStations() {  // 105395 -> 16 bits, most are repeated (2), 32 bits
+                       // only 1 repeated but range too big
+  auto fs = files[fStations];
+  uint max = 0, min = UINT_MAX;
+
+  QMap<uint, QMap<QByteArray, uchar>> m;
+
+  for (int row = 0; row < fs.length(); row++) {
+    auto b = fs[row][getFieldCol(fStations, "id")];
+    auto s = b.constData();
+
+    auto cs = hash24((const uchar *)s, 11);
+
+    max = std::max<uint>(max, cs);
+    min = std::min<uint>(min, cs);
+
+    auto &it = m[cs][b];
+    it = 1;
+  }
+  for (auto _m : m.keys())
+    if (m[_m].size() > 1) {
+      printf("checksum: %u (%d) -> ", _m, m[_m].size());
+      for (auto s : m[_m].keys()) printf("%s ", s.constData());
+      printf("\n");
+    }
+
+  printf("\nmin=%u, max=%u, diff=%u\n", min, max, max - min);
+}
+
+
+static void calculateHashElements(QList<BytesList> fs) {  // check
+  uchar *elemHash = (uchar *)calloc(0xffffu, 1);
+  quint16 max = 0, min = 0xffffu;  // min: 40770, max:65507, diff:24737
+
+  QMap<quint16, int> mchs;
+  for (int row = 0; row < fs.length(); row++) {
+    auto cs = qChecksum(fs[row][0].constData(), 4);
+
+    max = std::max<quint16>(max, cs);
+    min = std::min<quint16>(min, cs);
+
+    if (elemHash[cs])
+      printf("repeated hash: %s, %d\n", fs[row][0].constData(), cs);
+
+    elemHash[cs] = row;
+
+    mchs[cs]++;
+    if (mchs[cs] > 1)
+      printf("repeated hash: %s, %d\n", fs[row][0].constData(), cs);
+  }
+
+  printf("min: %d, max:%d, diff:%d\n", min, max, max - min);
+  for (auto c : mchs)
+    if (c > 1) printf("%d ", c);
+}
+
+// tree of indexFld[0],indexFld[1]
+Tree *tree() {
+  Tree *root = new Tree({}), *t0 = 0, *t1 = 0;
+
+  Bytes k0, k1;
+  Statistic st0, st1, stg;
+
+  for (int r = 0; r <= nRecs; r++) {
+    auto bs = (r != nRecs) ? keyStat[r].bitset : 0;  // finish?
+
+    auto _k0 = BitSet2Key(0, bs), _k1 = BitSet2Key(1, bs);
+    auto change0 = (_k0 != k0);
+
+    if (change0) {
+      if (t0)
+        t0->setData({k0, st0.format(st0.n), st0.format(st0.min),
+                     st0.format(st0.max), st0.format(st0.sum)});
+      root->appendChild(t0 = new Tree({}, root));
+      st0.init();
+      k0 = _k0;
+    }
+
+    if (_k1 != k1 || change0) {
+      if (t1)
+        t1->setData({k1, st1.format(st1.n), st1.format(st1.min),
+                     st1.format(st1.max), st1.format(st1.sum)});
+      t0->appendChild(t1 = new Tree({}, t0));
+      st1.init();
+      k1 = _k1;
+    }
+
+    if (r != nRecs)
+      st0 += keyStat[r].stat, st1 += keyStat[r].stat, stg += keyStat[r].stat;
+  }
+  root->setData({header[indexFlds[0]] + "/" + header[indexFlds[1]],
+                 "#:" + stg.format(stg.n), "min:" + stg.format(stg.min),
+                 "max:" + stg.format(stg.max), "sum:" + stg.format(stg.sum)});
+  return root;
+}
+
+
+void _report(const QVector<Fields> &flds) {
+  int nf = flds.size();
+  QVector<Bytes> keys(nf);
+  bool brk = false;
+
+  sortBy(flds);
+
+  for (int rn = 0; rn < nRecs; rn++) {
+    brk = false;
+    for (int i = 0; i < nf; i++) {
+      auto ki = getKey(i, rn);
+      if (keys[i] != ki || brk) {
+        printf("%*c%s\n", i * 3, ' ', ki.constData());
+        brk = true;  // propagate break
+      }
+    }
+
+    for (int i = 0; i < nf; i++) keys[i] = getKey(i, rn);
+  }
+}
+
+template <class T>
+static void parallel_sort(T *data, int len, int grainsize) {
+  if (len < grainsize) {
+    std::sort(data, data + len, std::less<T>());
+  } else {
+    auto future = std::async(parallel_sort<T>, data, len / 2, grainsize);
+    parallel_sort(data + len / 2, len / 2, grainsize);
+    future.wait();
+    std::inplace_merge(data, data + len / 2, data + len, std::less<T>());
+  }
+}
+
+typedef BitKeyStat Type;
+int naive_quick_sort(std::vector<Type>::iterator begin,
+                     std::vector<Type>::iterator end) {
+  auto const sz = end - begin;
+  if (sz <= 1) return 0;
+
+  auto pivot = begin + sz / 2;
+  auto const pivot_v = *pivot;
+
+  std::swap(*pivot, *(end - 1));
+  auto p =
+      std::partition(begin, end, [&](const Type &a) { return a < pivot_v; });
+  std::swap(*p, *(end - 1));
+
+  if (sz > 4 * 4096) {
+    std::async(std::launch::async,
+               [&]() { return naive_quick_sort(begin, p); });
+    naive_quick_sort(p + 1, end);
+  } else {
+    naive_quick_sort(begin, p);
+    naive_quick_sort(p + 1, end);
+  }
+  return 0;
+}
+
+int mtSort(BitKeyStat *data, int len) {
+  if (len <= 1) return 0;
+
+  auto begin = data, end = data + len;
+  auto pivot = begin + len / 2;
+  auto const pivot_v = *pivot;
+
+  std::swap(*pivot, *(end - 1));
+  auto p = std::partition(
+      begin, end, [&](const BitKeyStat &a) { return a.bs < pivot_v.bs; });
+  std::swap(*p, *(end - 1));
+
+  if (len > 4096) {
+    std::async(std::launch::async,
+               [&]() { return mtSort(begin, p - begin); });
+    mtSort(p + 1, end - p + 1);
+  } else {
+    mtSort(begin, p - begin);
+    mtSort(p + 1, end - p + 1);
+  }
+  return 0;
+}
+
+void testMTSort() {  // time sort:757, time parallel: 2502
+  QTime time;
+
+  int nr = 100000000, gs = std::max(1024, nr / 8);
+  keyStat = new BitKeyStat[nr];
+  for (int i = 0; i < nr; i++) keyStat[i] = {(Bitset)i, StatRow()};
+
+  int t0, t1;
+
+  time.start();
+  std::sort(keyStat, keyStat + nr);
+  t0 = time.elapsed();
+
+  time.start();
+  parallel_sort<BitKeyStat>(keyStat, nr, gs);
+  t1 = time.elapsed();
+
+  printf("time sort:%d, time parallel: %d\n", t0, t1);
+
+  delete[] keyStat;
+}
+
+void testMTSortNaive() {  // time sort:2.299453, time parallel: 4.185545
+
+  int nr = 100000000;
+  auto keyStat = std::vector<BitKeyStat>(nr);
+
+  for (int i = 0; i < nr; i++) keyStat[i] = {(Bitset)rand(), StatRow()};
+
+  auto start = std::chrono::high_resolution_clock::now();
+  naive_quick_sort(keyStat.begin(), keyStat.end());
+  auto stop = std::chrono::high_resolution_clock::now();
+  auto tp = std::chrono::duration<double>(stop - start).count();
+
+  for (int i = 0; i < nr; i++) keyStat[i] = {(Bitset)rand(), StatRow()};
+
+  start = std::chrono::high_resolution_clock::now();
+  std::sort(keyStat.begin(), keyStat.end());
+  stop = std::chrono::high_resolution_clock::now();
+  auto ts = std::chrono::duration<double>(stop - start).count();
+
+  printf("time sort:%f, time parallel: %f\n", ts, tp);
+}
+
+// not working
+int _rn = 0;
+Tree *genTree(const QVector<Fields> &flds) {
+  reIndex(flds);
+  _rn = 0;
+  return genTree(flds, new Tree({genFieldsHeader(flds), "", ""}),
+                 getKey(0, 0));
+}
+Tree *genTree(const QVector<Fields> &flds, Tree *t, Bytes key, int nfld = 0) {
+  if (nfld < flds.size() - 1) {  // horizontal (nf+1)
+    for (; _rn < nRecs && key == getKey(nfld, _rn);)
+      t->appendChild(
+          genTree(flds, new Tree({key}, t), getKey(nfld + 1, _rn), nfld + 1));
+
+  } else {  // vertical (rn+1)
+    t = new Tree({key}, t);
+    for (; _rn < nRecs && key == getKey(nfld - 1, _rn); _rn++)
+      ;
+  }
+  return t;
+}
+
+
+void reIndex(int f, int t) {      // swap 2 fields in keyStat.bitSet
+  auto swappedBitsKey = bitsKey;  // new swapped copy of bitsKey
+  std::swap(swappedBitsKey[f], swappedBitsKey[t]);
+
+  for (int r = 0; r < nRecs; r++) {
+    auto iv = bitset2Ints(keyStat[r].bs);  // w/ actual keyBits
+    std::swap(iv[f], iv[t]);
+    keyStat[r].bs = ints2Bitset(iv, swappedBitsKey);  // w/ swapped version
+  }
+
+  bitsKey = swappedBitsKey;  // swap bitsKey, indexFlds, dictVect
+  std::swap(indexFlds[f], indexFlds[t]);
+  std::swap(dictVect[f], dictVect[t]);
+
+  sortKeyStat();
+}
+
+
+void setupModelData(const QStringList &lines, Tree *parent) {
+  QList<Tree *> parents;
+  QList<int> indentations;
+  parents << parent;
+  indentations << 0;
+
+  int number = 0;
+
+  while (number < lines.count()) {
+    int position = 0;
+    while (position < lines[number].length()) {
+      if (lines[number].at(position) != ' ') break;
+      position++;
+    }
+
+    QString lineData = lines[number].mid(position).trimmed();
+
+    if (!lineData.isEmpty()) {
+      // Read the column data from the rest of the line.
+      QStringList columnStrings =
+          lineData.split("\t", QString::SkipEmptyParts);
+      QList<QVariant> columnData;
+      for (int column = 0; column < columnStrings.count(); ++column)
+        columnData << columnStrings[column];
+
+      if (position > indentations.last()) {
+        // The last child of the current parent is now the new parent
+        // unless the current parent has no children.
+
+        if (parents.last()->childCount() > 0) {
+          parents << parents.last()->child(parents.last()->childCount() - 1);
+          indentations << position;
+        }
+      } else {
+        while (position < indentations.last() && parents.count() > 0) {
+          parents.pop_back();
+          indentations.pop_back();
+        }
+      }
+
+      // Append a new item to the current parent's list of children.
+      parents.last()->appendChild(new Tree(columnData, parents.last()));
+    }
+
+    ++number;
+  }
+}
+
+// index
+void Reader::index() {
+  prepareMTnoInit();
+  initIndex();
+
+  thrdIndex = std::thread(&Reader::_index, this);
+}
+
+void Reader::_index() {
+  for (int th = 0; th < nThreads; th++)
+    mtdata[th].th = std::thread(&Reader::__index, this, th);
+
+  for (int th = 0; th < nThreads; th++) mtdata[th].th.join();
+
+  emit finish(QString("indexed | %1 | time: %2")
+                  .arg(format(nRows))
+                  .arg(time.elapsed() / 1000., 7, 'f', 2));
+}
+
+void Reader::__index(int blk) {
+  int dl = dataList.length(), bpth = dl / nThreads;
+  int from = blk * bpth,
+      to = (blk == nThreads - 1) ? dl : (blk + 1) * bpth;  // last blocks to end
+
+  for (int b = from; b < to && !_abort; b++) {
+    auto file = qUncompress(dataList[b]);
+
+    indexFile(file);
+    if (from != -1 && !(recNo % 100000)) {
+      emit progress(QString("[indexing] %1 of %2 | lap:%3")
+                        .arg(format(recNo))
+                        .arg(format(nRows))
+                        .arg(time.elapsed() / 1000., 7, 'f', 2));
+    }
+  }
+}
+
+// geenrate indexes for raw_file
+void Reader::indexFile(QByteArray& raw_file) {
+  DailyStruct ds;
+  DailyStruct::Daily* daily;
+
+  auto file = raw_file.split('\n');
+
+  for (int rn = 0; rn < file.length(); rn++) {
+    auto row = file[rn];
+    if (!row.isEmpty()) {
+      daily = ds.line2daily(row);  // convert row to struct
+      for (auto ix : indexList) ix->add(row, daily, recNo);
+
+      recNo++;
+    }
+  }
+}
+
+void Reader::initIndex() {
+  for (auto ix : indexList) ix->clear();
+}
+
+
+tree = getIndex(type);
+
+Tree *getIndex(int type) {
+  Tree *tree;
+  switch (type) {
+    case 0:
+      tree = btIndex2Tree("/Volumes/backup 1TB/noaa data/elemyear.idx");
+      //                tree = reader->ixElem[reader->ixStation];
+      break;
+    case 1:
+      tree = reader->ixElem[reader->ixYear];
+      break;
+    case 2:
+      tree = reader->ixStation[reader->ixElem];
+      break;
+    case 3:
+      tree = reader->ixStation[reader->ixYear];
+      break;
+    case 4:
+      tree = reader->ixYear[reader->ixElem];
+      break;
+    case 5:
+      tree = reader->ixYear[reader->ixStation];
+      break;
+  }
+  return tree;
+}
+
+void create_Tree_Daily() {
+  QByteArray cty, cc;
+  TreeItem *tc = 0;
+
+  rootItem = new TreeItem({"country", "count", "min", "max", "mean", "sum"});
+
+  for (auto st : reader->getNameList()) {
+    cc = st.left(2).toLocal8Bit();
+
+    if (cty != cc) {
+      if (tc) rootItem->appendChild(tc);
+      cty = cc;
+      tc = new TreeItem({cty + " " + auxFile.findCountry(cty)}, rootItem);
+    }
+
+    auto stName = auxFile.findStation(st).first;
+    auto ts = new TreeItem({st + " " + stName, 0, 0, 0, 0, 0}, tc);
+
+    auto xse = ix;
+    auto stb = st.toLocal8Bit();
+    Statistic accSt;
+    for (auto i = xse.lowerBound(stb); i != xse.upperBound(stb + "zzzz");
+         i++) {
+      auto eSt = i.value();
+      auto element = i.key().right(4);
+      ts->appendChild(
+          new TreeItem({element + " " + auxFile.findElements(element),
+                        eSt.format(eSt.n), eSt.min, eSt.max,
+                        eSt.format(eSt.mean()), eSt.format((float)eSt.sum)},
+                       ts));
+      accSt += i.value();
+    }
+    ts->setData({st + " " + stName, accSt.format(accSt.n), accSt.min,
+                 accSt.max, accSt.format(accSt.mean()),
+                 accSt.format((float)accSt.sum)});
+
+    tc->appendChild(ts);
+  }
+
+  if (tc) rootItem->appendChild(tc);
+}
+
+void createTree_ElementYearIndex() {
+  IndexCount ix1, ix2;
+  QVector<IndexCount::iterator> iter1, iter2;
+  QStringList hdr1, hdr2;
+
+  for (auto i = ix.begin(); i != ix.end(); i++) {  // count unique items
+    ix1[i.key().left(4)]++;
+    ix2[i.key().right(4)]++;
+  }
+  for (auto i = ix1.begin(); i != ix1.end();
+       i++) {  // create iterators & headers
+    iter1 << i;
+    hdr1 << i.key();
+  }
+  for (auto i = ix2.begin(); i != ix2.end(); i++) {
+    iter2 << i;
+    hdr2 << i.key();
+  }
+
+  rootItem = new TreeItem({"Element", "count", "min", "max", "avg", "sum"});
+  for (int i = 0; i < hdr1.length(); i++) {
+    auto t = new TreeItem({hdr1[i], 0, 0, 0, 0, 0}, rootItem);
+    Statistic st;
+    for (int j = 0; j < hdr2.length(); j++) {
+      auto k = ix[(hdr1[i] + hdr2[j]).toLocal8Bit()];
+      if (k.n != 0) {
+        t->appendChild(
+            new TreeItem({hdr2[j], st.format(k.n), k.min, k.max,
+                          st.format(k.mean()), st.format((float)k.sum)},
+                         t));
+      }
+      st += k;
+    }
+    t->setData({hdr1[i], st.format(st.n), st.min, st.max,
+                st.format(st.mean()), st.format((float)st.sum)});
+    rootItem->appendChild(t);
+  }
+}
+
+class Index {
+ public:
+  typedef QMap<Bytes, KeyItem> KeyRecsIndex;
+  typedef QMap<Bytes, IndexStat> TreeIndex;
+
+  KeyRecsIndex index;
+
+  DailyStruct ds;
+  Statistic st;
+  int fld;
+
+  Index(int fld) : fld(fld) {}
+  ~Index() { clear(); }
+
+  void clear() { index.clear(); }
+
+  void add(Bytes line, DailyStruct::Daily* daily, int recNo) {
+    auto kk = ds.line2field(line, fld);  // get key
+    index[kk].add(recNo, daily);         // create / acc. statis
+  }
+
+  TreeIndex genTree(Index& ix) {
+    TreeIndex tree;
+    for (auto k : index.keys()) {
+      auto recs = index[k].recs;
+      IndexStat is;
+      for (auto k2 : ix.index.keys()) {
+        auto intsec = ix.index[k2].recs.intersect(recs);
+
+        for (auto its : intsec) {
+          is[k2] << its;
+        }
+      }
+      tree[k];
+    }
+    return tree;
+  }
+
+  Tree* operator[](Index& ix) {
+    Tree* root = new Tree({ds.header[fld] + "/" + ds.header[ix.fld], "#",
+                           "# obs.", "min", "max", "avg", "sum"});
+    auto xt = genTree(ix);
+    for (auto k : xt.keys()) {
+      IndexStat rm = genRecMap(k, xt);
+
+      Tree* t =
+          new Tree({k, st.format(rm.size()), st.format(st.n), st.min, st.max,
+                    st.format(st.mean()), st.format((float)st.sum)},
+                   root);
+
+      for (auto i : rm.keys()) {
+        auto st = rm[i];
+        t->appendChild(
+            new Tree({i, "", st.format(st.n), st.min, st.max,
+                      st.format(st.mean()), st.format((float)st.sum)},
+                     t));
+      }
+
+      root->appendChild(t);
+    }
+    return root;
+  }
+};
+
+
+genJoinIndex(ix);
+
+    Bytes ck;
+    Tree* t = nullptr;
+    int cnt = 0;
+    st = Statistic();
+
+    for (auto k : jix.keys()) {
+      auto k1 = k.left(sz), k2 = k.right(ix.sz);
+
+      if (ck != k1) {
+        if (t) {
+          t->setData({ck, st.format(cnt), st.format(st.n), st.min, st.max,
+                      st.format(st.mean()), st.format((float)st.sum)});
+          root->appendChild(t);
+        }
+        t = new Tree({}, root);
+        st = Statistic();
+        cnt = 0;
+      }
+      auto jixSt = jix[k].stat;
+      st += jixSt;
+      t->appendChild(
+          new Tree({k2, "", st.format(jixSt.n), jixSt.min, jixSt.max,
+                    st.format(jixSt.mean()), st.format((float)jixSt.sum)},
+                   t));
+      ck = k1;
+      cnt++;
+    }
+    if (t) {
+      t->setData({ck, st.format(cnt), st.format(st.n), st.min, st.max,
+                  st.format(st.mean()), st.format((float)st.sum)});
+      root->appendChild(t);
+    }
+
+
+KeyRecsIndex genJoinIndex(Index& ix) {
+  KeyRecsIndex cix;  // compound index
+
+  for (auto k : index.keys()) {
+    auto recs = index[k].recs;
+    for (auto k2 : ix.index.keys()) {
+      if (ix.index[k2].recs.intersects(recs)) {
+        auto c2 = cix[k + k2];
+        c2.recs = ix.index[k2].recs.intersect(recs);
+        c2.stat += ix.index[k2].stat;
+      }
+    }
+  }
+  return cix;
+}
+
+
+Tree *getDoubleIndex(int type) {
+  Tree *tree;
+  switch (type) {
+    case 0:
+      tree = reader->dimElem[reader->dimStation];
+      break;
+    case 1:
+      tree = reader->dimElem[reader->dimYear];
+      break;
+    case 2:
+      tree = reader->dimStation[reader->dimElem];
+      break;
+    case 3:
+      tree = reader->dimStation[reader->dimYear];
+      break;
+    case 4:
+      tree = reader->dimYear[reader->dimElem];
+      break;
+    case 5:
+      tree = reader->dimYear[reader->dimStation];
+      break;
+  }
+  return tree;
+}
+
+// original raw tree creation
+Tree* genTree(QList<Index> ixl, Tree* t, int i) {
+  if (i < ixl.size() - 1)
+    for (auto k : ixl[i].index.keys())
+      t->appendChild(genTree(ixl, new Tree({k}, t), i + 1));
+  else
+    for (auto k : ixl[i].index.keys()) t->appendChild(new Tree({k}, t));
+  return t;
+}

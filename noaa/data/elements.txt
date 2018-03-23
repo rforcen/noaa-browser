@@ -1,0 +1,207 @@
+ACMC Average cloudiness midnight to midnight from 30-second ceilometer data (percent)
+ACMH Average cloudiness midnight to midnight from manual observations (percent)
+ACSC Average cloudiness sunrise to sunset from 30-second ceilometer data (percent)
+ACSH Average cloudiness sunrise to sunset from manual observations (percent)
+AWDR Average daily wind direction (degrees)
+AWND Average daily wind speed (tenths of meters per second)
+DAEV Number of days included in the multiday evaporation total (MDEV)
+DAPR Number of days included in the multiday precipiation total (MDPR)
+DASF Number of days included in the multiday snowfall total (MDSF)
+DATN Number of days included in the multiday minimum temperature   (MDTN)
+DATX Number of days included in the multiday maximum temperature (MDTX)
+DAWM Number of days included in the multiday wind movement (MDWM)
+DWPR Number of days with non-zero precipitation included in multiday precipitation total (MDPR)
+EVAP Evaporation of water from evaporation pan (tenths of mm)
+FMTM Time of fastest mile or fastest 1-minute wind (hours and minutes, i.e., HHMM)
+FRGB Base of frozen ground layer (cm)
+FRGT Top of frozen ground layer (cm)
+FRTH Thickness of frozen ground layer (cm)
+GAHT Difference between river and gauge height (cm)
+MDEV Multiday evaporation total (tenths of mm; use with DAEV)
+MDPR Multiday precipitation total (tenths of mm; use with DAPR and DWPR, if available)
+MDSF Multiday snowfall total
+MDTN Multiday minimum temperature (tenths of degrees C; use with DATN)
+MDTX Multiday maximum temperature (tenths of degress C; use with DATX)
+MDWM Multiday wind movement (km)
+MNPN Daily minimum temperature of water in an evaporation pan  (tenths of degrees C)
+MXPN Daily maximum temperature of water in an evaporation pan  (tenths of degrees C)
+PGTM Peak gust time (hours and minutes, i.e., HHMM)
+PRCP Precipitation (tenths of mm)
+PSUN Daily percent of possible sunshine (percent)
+SN01 Minimum soil temperature (C/10), ground cover: unknown, depth: 5 cm
+SN02 Minimum soil temperature (C/10), ground cover: unknown, depth: 10 cm
+SN03 Minimum soil temperature (C/10), ground cover: unknown, depth: 20 cm
+SN04 Minimum soil temperature (C/10), ground cover: unknown, depth: 50 cm
+SN05 Minimum soil temperature (C/10), ground cover: unknown, depth: 100 cm
+SN06 Minimum soil temperature (C/10), ground cover: unknown, depth: 150 cm
+SN07 Minimum soil temperature (C/10), ground cover: unknown, depth: 180 cm
+SN11 Minimum soil temperature (C/10), ground cover: grass, depth: 5 cm
+SN12 Minimum soil temperature (C/10), ground cover: grass, depth: 10 cm
+SN13 Minimum soil temperature (C/10), ground cover: grass, depth: 20 cm
+SN14 Minimum soil temperature (C/10), ground cover: grass, depth: 50 cm
+SN15 Minimum soil temperature (C/10), ground cover: grass, depth: 100 cm
+SN16 Minimum soil temperature (C/10), ground cover: grass, depth: 150 cm
+SN17 Minimum soil temperature (C/10), ground cover: grass, depth: 180 cm
+SN21 Minimum soil temperature (C/10), ground cover: fallow, depth: 5 cm
+SN22 Minimum soil temperature (C/10), ground cover: fallow, depth: 10 cm
+SN23 Minimum soil temperature (C/10), ground cover: fallow, depth: 20 cm
+SN24 Minimum soil temperature (C/10), ground cover: fallow, depth: 50 cm
+SN25 Minimum soil temperature (C/10), ground cover: fallow, depth: 100 cm
+SN26 Minimum soil temperature (C/10), ground cover: fallow, depth: 150 cm
+SN27 Minimum soil temperature (C/10), ground cover: fallow, depth: 180 cm
+SN31 Minimum soil temperature (C/10), ground cover: bare ground, depth: 5 cm
+SN32 Minimum soil temperature (C/10), ground cover: bare ground, depth: 10 cm
+SN33 Minimum soil temperature (C/10), ground cover: bare ground, depth: 20 cm
+SN34 Minimum soil temperature (C/10), ground cover: bare ground, depth: 50 cm
+SN35 Minimum soil temperature (C/10), ground cover: bare ground, depth: 100 cm
+SN36 Minimum soil temperature (C/10), ground cover: bare ground, depth: 150 cm
+SN37 Minimum soil temperature (C/10), ground cover: bare ground, depth: 180 cm
+SN41 Minimum soil temperature (C/10), ground cover: brome grass, depth: 5 cm
+SN42 Minimum soil temperature (C/10), ground cover: brome grass, depth: 10 cm
+SN43 Minimum soil temperature (C/10), ground cover: brome grass, depth: 20 cm
+SN44 Minimum soil temperature (C/10), ground cover: brome grass, depth: 50 cm
+SN45 Minimum soil temperature (C/10), ground cover: brome grass, depth: 100 cm
+SN46 Minimum soil temperature (C/10), ground cover: brome grass, depth: 150 cm
+SN47 Minimum soil temperature (C/10), ground cover: brome grass, depth: 180 cm
+SN51 Minimum soil temperature (C/10), ground cover: sod, depth: 5 cm
+SN52 Minimum soil temperature (C/10), ground cover: sod, depth: 10 cm
+SN53 Minimum soil temperature (C/10), ground cover: sod, depth: 20 cm
+SN54 Minimum soil temperature (C/10), ground cover: sod, depth: 50 cm
+SN55 Minimum soil temperature (C/10), ground cover: sod, depth: 100 cm
+SN56 Minimum soil temperature (C/10), ground cover: sod, depth: 150 cm
+SN57 Minimum soil temperature (C/10), ground cover: sod, depth: 180 cm
+SN61 Minimum soil temperature (C/10), ground cover: straw multch, depth: 5 cm
+SN62 Minimum soil temperature (C/10), ground cover: straw multch, depth: 10 cm
+SN63 Minimum soil temperature (C/10), ground cover: straw multch, depth: 20 cm
+SN64 Minimum soil temperature (C/10), ground cover: straw multch, depth: 50 cm
+SN65 Minimum soil temperature (C/10), ground cover: straw multch, depth: 100 cm
+SN66 Minimum soil temperature (C/10), ground cover: straw multch, depth: 150 cm
+SN67 Minimum soil temperature (C/10), ground cover: straw multch, depth: 180 cm
+SN71 Minimum soil temperature (C/10), ground cover: grass muck, depth: 5 cm
+SN72 Minimum soil temperature (C/10), ground cover: grass muck, depth: 10 cm
+SN73 Minimum soil temperature (C/10), ground cover: grass muck, depth: 20 cm
+SN74 Minimum soil temperature (C/10), ground cover: grass muck, depth: 50 cm
+SN75 Minimum soil temperature (C/10), ground cover: grass muck, depth: 100 cm
+SN76 Minimum soil temperature (C/10), ground cover: grass muck, depth: 150 cm
+SN77 Minimum soil temperature (C/10), ground cover: grass muck, depth: 180 cm
+SN81 Minimum soil temperature (C/10), ground cover: bare muck, depth: 5 cm
+SN82 Minimum soil temperature (C/10), ground cover: bare muck, depth: 10 cm
+SN83 Minimum soil temperature (C/10), ground cover: bare muck, depth: 20 cm
+SN84 Minimum soil temperature (C/10), ground cover: bare muck, depth: 50 cm
+SN85 Minimum soil temperature (C/10), ground cover: bare muck, depth: 100 cm
+SN86 Minimum soil temperature (C/10), ground cover: bare muck, depth: 150 cm
+SN87 Minimum soil temperature (C/10), ground cover: bare muck, depth: 180 cm
+SNOW Snowfall (mm)
+SNWD Snow depth (mm)
+SX01 Maximun soil temperature (C/10), ground cover: unknown, depth: 5 cm
+SX02 Maximun soil temperature (C/10), ground cover: unknown, depth: 10 cm
+SX03 Maximun soil temperature (C/10), ground cover: unknown, depth: 20 cm
+SX04 Maximun soil temperature (C/10), ground cover: unknown, depth: 50 cm
+SX05 Maximun soil temperature (C/10), ground cover: unknown, depth: 100 cm
+SX06 Maximun soil temperature (C/10), ground cover: unknown, depth: 150 cm
+SX07 Maximun soil temperature (C/10), ground cover: unknown, depth: 180 cm
+SX11 Maximun soil temperature (C/10), ground cover: grass, depth: 5 cm
+SX12 Maximun soil temperature (C/10), ground cover: grass, depth: 10 cm
+SX13 Maximun soil temperature (C/10), ground cover: grass, depth: 20 cm
+SX14 Maximun soil temperature (C/10), ground cover: grass, depth: 50 cm
+SX15 Maximun soil temperature (C/10), ground cover: grass, depth: 100 cm
+SX16 Maximun soil temperature (C/10), ground cover: grass, depth: 150 cm
+SX17 Maximun soil temperature (C/10), ground cover: grass, depth: 180 cm
+SX21 Maximun soil temperature (C/10), ground cover: fallow, depth: 5 cm
+SX22 Maximun soil temperature (C/10), ground cover: fallow, depth: 10 cm
+SX23 Maximun soil temperature (C/10), ground cover: fallow, depth: 20 cm
+SX24 Maximun soil temperature (C/10), ground cover: fallow, depth: 50 cm
+SX25 Maximun soil temperature (C/10), ground cover: fallow, depth: 100 cm
+SX26 Maximun soil temperature (C/10), ground cover: fallow, depth: 150 cm
+SX27 Maximun soil temperature (C/10), ground cover: fallow, depth: 180 cm
+SX31 Maximun soil temperature (C/10), ground cover: bare ground, depth: 5 cm
+SX32 Maximun soil temperature (C/10), ground cover: bare ground, depth: 10 cm
+SX33 Maximun soil temperature (C/10), ground cover: bare ground, depth: 20 cm
+SX34 Maximun soil temperature (C/10), ground cover: bare ground, depth: 50 cm
+SX35 Maximun soil temperature (C/10), ground cover: bare ground, depth: 100 cm
+SX36 Maximun soil temperature (C/10), ground cover: bare ground, depth: 150 cm
+SX37 Maximun soil temperature (C/10), ground cover: bare ground, depth: 180 cm
+SX41 Maximun soil temperature (C/10), ground cover: brome grass, depth: 5 cm
+SX42 Maximun soil temperature (C/10), ground cover: brome grass, depth: 10 cm
+SX43 Maximun soil temperature (C/10), ground cover: brome grass, depth: 20 cm
+SX44 Maximun soil temperature (C/10), ground cover: brome grass, depth: 50 cm
+SX45 Maximun soil temperature (C/10), ground cover: brome grass, depth: 100 cm
+SX46 Maximun soil temperature (C/10), ground cover: brome grass, depth: 150 cm
+SX47 Maximun soil temperature (C/10), ground cover: brome grass, depth: 180 cm
+SX51 Maximun soil temperature (C/10), ground cover: sod, depth: 5 cm
+SX52 Maximun soil temperature (C/10), ground cover: sod, depth: 10 cm
+SX53 Maximun soil temperature (C/10), ground cover: sod, depth: 20 cm
+SX54 Maximun soil temperature (C/10), ground cover: sod, depth: 50 cm
+SX55 Maximun soil temperature (C/10), ground cover: sod, depth: 100 cm
+SX56 Maximun soil temperature (C/10), ground cover: sod, depth: 150 cm
+SX57 Maximun soil temperature (C/10), ground cover: sod, depth: 180 cm
+SX61 Maximun soil temperature (C/10), ground cover: straw multch, depth: 5 cm
+SX62 Maximun soil temperature (C/10), ground cover: straw multch, depth: 10 cm
+SX63 Maximun soil temperature (C/10), ground cover: straw multch, depth: 20 cm
+SX64 Maximun soil temperature (C/10), ground cover: straw multch, depth: 50 cm
+SX65 Maximun soil temperature (C/10), ground cover: straw multch, depth: 100 cm
+SX66 Maximun soil temperature (C/10), ground cover: straw multch, depth: 150 cm
+SX67 Maximun soil temperature (C/10), ground cover: straw multch, depth: 180 cm
+SX71 Maximun soil temperature (C/10), ground cover: grass muck, depth: 5 cm
+SX72 Maximun soil temperature (C/10), ground cover: grass muck, depth: 10 cm
+SX73 Maximun soil temperature (C/10), ground cover: grass muck, depth: 20 cm
+SX74 Maximun soil temperature (C/10), ground cover: grass muck, depth: 50 cm
+SX75 Maximun soil temperature (C/10), ground cover: grass muck, depth: 100 cm
+SX76 Maximun soil temperature (C/10), ground cover: grass muck, depth: 150 cm
+SX77 Maximun soil temperature (C/10), ground cover: grass muck, depth: 180 cm
+SX81 Maximun soil temperature (C/10), ground cover: bare muck, depth: 5 cm
+SX82 Maximun soil temperature (C/10), ground cover: bare muck, depth: 10 cm
+SX83 Maximun soil temperature (C/10), ground cover: bare muck, depth: 20 cm
+SX84 Maximun soil temperature (C/10), ground cover: bare muck, depth: 50 cm
+SX85 Maximun soil temperature (C/10), ground cover: bare muck, depth: 100 cm
+SX86 Maximun soil temperature (C/10), ground cover: bare muck, depth: 150 cm
+SX87 Maximun soil temperature (C/10), ground cover: bare muck, depth: 180 cm
+TAVG Average temperature (tenths of degrees C) [average for the period ending at 2400 UTC]
+THIC Thickness of ice on water (tenths of mm)
+TMAX Maximum temperature (tenths of degrees C)
+TMIN Minimum temperature (tenths of degrees C)
+TOBS Temperature at the time of observation (tenths of degrees C)
+TSUN Daily total sunshine (minutes)
+WDF1 Direction of fastest 1-minute wind (degrees)
+WDF2 Direction of fastest 2-minute wind (degrees)
+WDF5 Direction of fastest 5-second wind (degrees)
+WDFG Direction of peak wind gust (degrees)
+WDFI Direction of highest instantaneous wind (degrees)
+WDFM Fastest mile wind direction (degrees)
+WDMV 24-hour wind movement (km)
+WESD Water equivalent of snow on the ground (tenths of mm)
+WESF Water equivalent of snowfall (tenths of mm)
+WSF1 Fastest 1-minute wind speed (tenths of meters per second)
+WSF2 Fastest 2-minute wind speed (tenths of meters per second)
+WSF5 Fastest 5-second wind speed (tenths of meters per second)
+WSFG Peak gust wind speed (tenths of meters per second)
+WSFI Highest instantaneous wind speed (tenths of meters per second)
+WSFM Fastest mile wind speed (tenths of meters per second)
+WT00 Weather Type where ** has one of the following values:
+WT01 Fog, ice fog, or freezing fog (may include heavy fog)
+WT02 Heavy fog or heaving freezing fog (not always	distinquished from fog)
+WT03 Thunder
+WT04 Ice pellets, sleet, snow pellets, or small hail
+WT05 Hail (may include small hail)
+WT06 Glaze or rime
+WT07 Dust, volcanic ash, blowing dust, blowing sand, or	blowing obstruction
+WT08 Smoke or haze
+WT09 Blowing or drifting snow
+WT10 Tornado, waterspout, or funnel cloud
+WT11 High or damaging winds
+WT12 Blowing spray
+WT13 Mist
+WT14 Drizzle
+WT15 Freezing drizzle
+WT16 Rain (may include freezing rain, drizzle, and	freezing drizzle)
+WT17 Freezing rain
+WT18 Snow, snow pellets, snow grains, or ice crystals
+WT19 Unknown source of precipitation
+WT21 Ground fog
+WT22 Ice fog or freezing fog
+WV00 Weather in the Vicinity where ** has one of the following values:
+WV01 Fog, ice fog, or freezing fog (may include heavy fog)
+WV03 Thunder
+WV07 Ash, dust, sand, or other blowing obstruction
+WV18 Snow or ice crystals
+WV20 Rain or snow shower

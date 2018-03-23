@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>data/elements.txt</file>
+        <file>data/ghcnd-countries.txt</file>
+        <file>data/ghcnd-states.txt</file>
+        <file>data/ghcnd-stations.txt</file>
+        <file>data/months.txt</file>
+    </qresource>
+</RCC>
